@@ -1,0 +1,742 @@
+---
+title: "STAT 345 Midterm Project"
+date: "Due April 3"
+name: "Kayla Newman"
+output:
+  word_document: default
+  pdf_document: default
+  html_document: default
+font: 12pt
+---
+
+> "NOBODY KNOWS ANYTHING. Not one person in the entire motion picture field knows for a certainty what’s going to work. Every time out it’s a guess—and, if you’re lucky, an educated one." William Goldman, _Adventures in the Screen Trade_
+
+Your data for the midterm project consists of the 1000 highest rated movies on the Internet Movie Database (IMDB). You can find the first 50 movies [here](https://www.imdb.com/search/title/?groups=top_1000&start=1), with navigational links to the other 950 movies.
+
+Each IMDB page records a large amount of information about each movie. We are interested in the following:
+
+   * The average rating of the movie by IMDB users. 
+   * The number of ratings of the movie. 
+   * The year the movie was released. 
+   * The gross revenue of the movie (US).
+   * The budget for the movie.
+   * The movie's title.
+   * The movie’s genre(s). 
+   * The four top-billed actors.
+   * The text of the 25 "most helpful" reviews, as well as their helpfulness (ratio of helpful votes out of total votes.) 
+    
+Note that the first five (and last) variables are numeric, and the genre, title, and reviews are strings. In some cases, some of these variables may be missing for a particular movie.
+
+In some cases, the business information page lists multiple gross revenues, depending on the country, or gross receipts by different dates. In case of ambiguity, we are interested in gross receipts for the US, and want to use the figure for the latest available date. If no gross revenue figure is available for the US, treat the gross revenue as missing.
+
+**General advice:** Get started on this one early. If you wait to the last minute, it will not go well.
+```{r}
+library(tidyverse)
+library(rvest)
+library(ggrepel)
+library(RColorBrewer)
+library(tidytext)
+```
+
+1. (30 pts) Write code to extract the variables described above from all 1000 movies, and store it in a data frame. For full credit, you should write a function which can extract this information from an arbitrary movie code (or url), and then further code which uses that function and applies it to all 1000 movies. For full credit, your code should avoid loops in favor of vectorized operations and apply (and sapply, lapply, etc., as convenient). Your code should handle missing values appropriately, and should not convert categorical variables into numbers, or numbers into strings, etc. 
+```{r}
+#getting the urls from each page (pg1-pg20) and extracting the nodes
+url <- "https://www.imdb.com/search/title/?groups=top_1000&start=1"
+h <- read_html(url)
+imdb1 <- html_nodes(h, ".lister-item-header a")
+
+url <- "https://www.imdb.com/search/title/?groups=top_1000&start=51&ref_=adv_nxt"
+h <- read_html(url)
+imdb2 <-html_nodes(h, ".lister-item-header a")
+
+url <- "https://www.imdb.com/search/title/?groups=top_1000&start=101&ref_=adv_nxt"
+h <- read_html(url)
+imdb3 <-html_nodes(h, ".lister-item-header a")
+
+url <- "https://www.imdb.com/search/title/?groups=top_1000&start=151&ref_=adv_nxt"
+h <- read_html(url)
+imdb4 <-html_nodes(h, ".lister-item-header a")
+
+url <- "https://www.imdb.com/search/title/?groups=top_1000&start=201&ref_=adv_nxt"
+h <- read_html(url)
+imdb5 <-html_nodes(h, ".lister-item-header a")
+
+url <- "https://www.imdb.com/search/title/?groups=top_1000&start=251&ref_=adv_nxt"
+h <- read_html(url)
+imdb6 <-html_nodes(h, ".lister-item-header a")
+
+url <- "https://www.imdb.com/search/title/?groups=top_1000&start=301&ref_=adv_nxt"
+h <- read_html(url)
+imdb7 <-html_nodes(h, ".lister-item-header a")
+
+url <- "https://www.imdb.com/search/title/?groups=top_1000&start=351&ref_=adv_nxt"
+h <- read_html(url)
+imdb8 <-html_nodes(h, ".lister-item-header a")
+
+url <- "https://www.imdb.com/search/title/?groups=top_1000&start=401&ref_=adv_nxt"
+h <- read_html(url)
+imdb9 <-html_nodes(h, ".lister-item-header a")
+
+url <- "https://www.imdb.com/search/title/?groups=top_1000&start=451&ref_=adv_nxt"
+h <- read_html(url)
+imdb10 <-html_nodes(h, ".lister-item-header a")
+
+url <- "https://www.imdb.com/search/title/?groups=top_1000&start=501&ref_=adv_nxt"
+h <- read_html(url)
+imdb11 <-html_nodes(h, ".lister-item-header a")
+
+url <- "https://www.imdb.com/search/title/?groups=top_1000&start=551&ref_=adv_nxt"
+h <- read_html(url)
+imdb12 <-html_nodes(h, ".lister-item-header a")
+
+url <- "https://www.imdb.com/search/title/?groups=top_1000&start=601&ref_=adv_nxt"
+h <- read_html(url)
+imdb13 <-html_nodes(h, ".lister-item-header a")
+
+url <- "https://www.imdb.com/search/title/?groups=top_1000&start=651&ref_=adv_nxt"
+h <- read_html(url)
+imdb14 <-html_nodes(h, ".lister-item-header a")
+
+url <- "https://www.imdb.com/search/title/?groups=top_1000&start=701&ref_=adv_nxt"
+h <- read_html(url)
+imdb15 <-html_nodes(h, ".lister-item-header a")
+
+url <- "https://www.imdb.com/search/title/?groups=top_1000&start=751&ref_=adv_nxt"
+h <- read_html(url)
+imdb16 <-html_nodes(h, ".lister-item-header a")
+
+url <- "https://www.imdb.com/search/title/?groups=top_1000&start=801&ref_=adv_nxt"
+h <- read_html(url)
+imdb17 <-html_nodes(h, ".lister-item-header a")
+
+url <- "https://www.imdb.com/search/title/?groups=top_1000&start=851&ref_=adv_nxt"
+h <- read_html(url)
+imdb18 <-html_nodes(h, ".lister-item-header a")
+
+url <- "https://www.imdb.com/search/title/?groups=top_1000&start=901&ref_=adv_nxt"
+h <- read_html(url)
+imdb19 <-html_nodes(h, ".lister-item-header a")
+
+url <- "https://www.imdb.com/search/title/?groups=top_1000&start=951&ref_=adv_nxt"
+h <- read_html(url)
+imdb20 <-html_nodes(h, ".lister-item-header a")
+
+```
+
+```{r}
+#extracting the links from data frames
+#patterns removes the "tt" address from each link
+links <- html_attr(imdb1, "href") %>%
+  url_absolute(url)
+pattern <- "tt*\\d{5,10}"
+link_num1 <- str_extract(c(links), pattern)
+
+links <- html_attr(imdb2, "href") %>%
+  url_absolute(url)
+pattern <- "tt*\\d{5,10}"
+link_num2 <- str_extract(c(links), pattern)
+
+links <- html_attr(imdb3, "href") %>%
+  url_absolute(url)
+pattern <- "tt*\\d{5,10}"
+link_num3 <- str_extract(c(links), pattern)
+
+links <- html_attr(imdb4, "href") %>%
+  url_absolute(url)
+pattern <- "tt*\\d{5,10}"
+link_num4 <- str_extract(c(links), pattern)
+
+links <- html_attr(imdb5, "href") %>%
+  url_absolute(url)
+pattern <- "tt*\\d{5,10}"
+link_num5 <- str_extract(c(links), pattern)
+
+links <- html_attr(imdb6, "href") %>%
+  url_absolute(url)
+pattern <- "tt*\\d{5,10}"
+link_num6 <- str_extract(c(links), pattern)
+
+links <- html_attr(imdb7, "href") %>%
+  url_absolute(url)
+pattern <- "tt*\\d{5,10}"
+link_num7 <- str_extract(c(links), pattern)
+
+links <- html_attr(imdb8, "href") %>%
+  url_absolute(url)
+pattern <- "tt*\\d{5,10}"
+link_num8 <- str_extract(c(links), pattern)
+
+links <- html_attr(imdb9, "href") %>%
+  url_absolute(url)
+pattern <- "tt*\\d{5,10}"
+link_num9 <- str_extract(c(links), pattern)
+
+links <- html_attr(imdb10, "href") %>%
+  url_absolute(url)
+pattern <- "tt*\\d{5,10}"
+link_num10 <- str_extract(c(links), pattern)
+
+links <- html_attr(imdb11, "href") %>%
+  url_absolute(url)
+pattern <- "tt*\\d{5,10}"
+link_num11 <- str_extract(c(links), pattern)
+
+links <- html_attr(imdb12, "href") %>%
+  url_absolute(url)
+pattern <- "tt*\\d{5,10}"
+link_num12 <- str_extract(c(links), pattern)
+
+links <- html_attr(imdb13, "href") %>%
+  url_absolute(url)
+pattern <- "tt*\\d{5,10}"
+link_num13 <- str_extract(c(links), pattern)
+
+links <- html_attr(imdb14, "href") %>%
+  url_absolute(url)
+pattern <- "tt*\\d{5,10}"
+link_num14 <- str_extract(c(links), pattern)
+
+links <- html_attr(imdb15, "href") %>%
+  url_absolute(url)
+pattern <- "tt*\\d{5,10}"
+link_num15 <- str_extract(c(links), pattern)
+
+links <- html_attr(imdb16, "href") %>%
+  url_absolute(url)
+pattern <- "tt*\\d{5,10}"
+link_num16 <- str_extract(c(links), pattern)
+
+links <- html_attr(imdb17, "href") %>%
+  url_absolute(url)
+pattern <- "tt*\\d{5,10}"
+link_num17 <- str_extract(c(links), pattern)
+
+links <- html_attr(imdb18, "href") %>%
+  url_absolute(url)
+pattern <- "tt*\\d{5,10}"
+link_num18 <- str_extract(c(links), pattern)
+
+links <- html_attr(imdb19, "href") %>%
+  url_absolute(url)
+pattern <- "tt*\\d{5,10}"
+link_num19 <- str_extract(c(links), pattern)
+
+links <- html_attr(imdb20, "href") %>%
+  url_absolute(url)
+pattern <- "tt*\\d{5,10}"
+link_num20 <- str_extract(c(links), pattern)
+```
+
+```{r}
+#puts each "tt" into one list
+links_nums <- c(link_num1, link_num2, link_num3, link_num4, link_num5, link_num6, link_num7, link_num8, link_num9, link_num10, link_num11, link_num12, link_num13, link_num14, link_num15, link_num16, link_num17, link_num18, link_num19, link_num20)
+
+```
+
+```{r}
+#combines the beginning url with the link numbers to go directly to movie
+imdb_urls <- paste("https://www.imdb.com/title/", links_nums, "/", sep = "")
+
+#makes the list of links into a data frame which is the same as the given imdb_urls.csv
+imdb_urls <- data.frame(imdb_urls, stringsAsFactors = FALSE)
+```
+
+```{r}
+#making a data frame for all of the data
+movie_data <- data.frame("title",	"year", "budget", "gross", "genre", "rating", "rate num", "actors")
+
+```
+
+```{r}
+#rank of movie/initialization 
+rank = 0
+
+#finding the rating
+ratings <- function(imdb_urls){
+    urls <- read_html(imdb_urls[rank])
+    rating <- html_nodes(urls, ".ratingValue")
+    rating <- html_text(rating)
+   
+    #string manipulation to get the rating by itself
+    rating <- gsub("\n", "", rating)
+    rating <- gsub("/10                    ", "", rating)
+    
+    #makes the rating a numeric value
+    rating <- as.numeric(rating)
+}
+
+```
+
+```{r}
+#finding the year
+years <- function(imdb_urls){
+    urls <- read_html(imdb_urls[rank])
+    year <- html_nodes(urls, "#titleYear")
+    year <- html_text(year)
+    
+    #string manipulation to get the year by itself
+    year <- gsub("\\(","", year)
+    year <- gsub("\\)","", year)
+}
+
+
+```
+
+```{r}
+#finding the title
+titles<- function(imdb_urls){
+    urls <- read_html(imdb_urls[rank])
+    title <- html_nodes(urls, "h1")
+    title <- html_text(title)
+    
+    #manipulates the node to get the title on it own
+    title <- gsub("\\([^didget][^didget][^didget][^didget]\\)            ","", title)
+   
+}
+
+```
+
+```{r}
+#find actors
+actors <- function(imdb_urls){
+    urls <- read_html(imdb_urls[rank])
+    actor <- html_nodes(urls, "td")
+    actor <- html_text(actor)
+   
+    #rank 723 had no actors, so I made it specifically NA
+    if(rank == 723) {
+     actor <- "NA"
+    }
+    
+    #this gets the specific nodes for each top actor
+    else{
+    actor1 <- actor %>%
+     .[[3]]
+    actor2 <- actor %>%
+      .[[7]]
+    actor3 <- actor %>%
+      .[[11]]
+    actor4 <- actor %>%
+      .[[15]]
+    actor <- c(actor1, actor2, actor3, actor4)
+    
+    #this minipulates it so we can get each actor on it own
+    actor <- gsub("\n", "", actor)
+    actor <- gsub("          ", "", actor)
+    
+    #instead of a list this makes the actors into a string
+    actor <- toString(actor)
+    }
+}
+
+```
+
+```{r}
+#find genres
+genres <- function(imdb_urls){
+    urls <- read_html(imdb_urls[rank])
+    genre <- html_nodes(urls, ".subtext")
+    genre <- html_text(genre)
+    
+    #string manipulation go get the genres of the movie
+    genre <- gsub("|\n","", genre)
+    genre <- gsub(".*min                    \\|","", genre)
+    genre <- gsub(".*h                    \\|","", genre)
+    genre <- gsub("|[0-9+]","", genre)
+    genre <- gsub("\\|.*","", genre)
+    genre <- gsub("    ","", genre)
+  
+}
+
+```
+
+```{r}
+#find the gross revenue
+gross_rev <- function(imdb_urls){
+    urls <- read_html(imdb_urls[rank])
+    gross <- html_nodes(urls, ".txt-block")
+    gross <- html_text(gross) 
+    
+    #finds the node that as the Gross USA value
+    node <- which(str_detect(gross, "Gross USA") == TRUE)
+   #if there is no node with the Gross USA budget, it makes the value NA
+     if(length(node) == 0){
+      gross <- "NA"
+    }
+    
+    #uses the node and minipulates it to get just the value of gross revenue
+    else{
+      gross <- gross %>%
+     .[[node]]
+    gross <- gsub("\n", "", gross)
+    gross <- gsub(".*\\$", "", gross)
+    gross <- gsub("        ", "", gross)
+    gross <- gsub("    \\(estimated\\)", "", gross)
+    gross <- gsub("\\,","", gross)
+
+    }
+    
+    format(as.numeric(gross), scientific = FALSE)
+}
+```
+
+```{r}
+#finds the budget of the movie
+budgets <- function(imdb_urls){
+    urls <- read_html(imdb_urls[rank])
+    budget <- html_nodes(urls, ".txt-block")
+    budget <- html_text(budget) 
+    
+    #finds the node with budget in it
+    node <- which(str_detect(budget, "Budget") == TRUE)
+    
+    #if there are no nodes with budget, it will make budget NA
+    if(length(node) == 0){
+      budget <- "NA"
+    }
+    
+    #does string manipulation to the node that has the budget in it
+    else{
+      budget <- budget %>%
+       .[[node]]
+      budget <- gsub("|\n","", budget)
+      budget <- gsub(".*Budget\\:","", budget)
+      budget <- gsub("            \\(estimated)\\        ","", budget)
+      budget <- gsub("\\,","", budget)
+      budget <- gsub(".*INR","", budget)
+      budget <- gsub(".*\\$","", budget)
+      format(as.numeric(budget), scientific = FALSE)
+    }
+    
+}
+
+```
+
+
+```{r}
+#find rating number
+rate_nums <- function(imdb_urls){
+    urls <- read_html(imdb_urls[rank])
+    rate_num <- html_nodes(urls, ".ratings_wrapper")
+    rate_num <- html_text(rate_num)
+    
+    #string manipulations
+    rate_num <- gsub("|\n","", rate_num)
+    rate_num <- gsub("user.*","", rate_num)
+    rate_num <- gsub("                                                        .*","", rate_num)
+    rate_num <- gsub(".*10                                  ","", rate_num)
+    rate_num <- gsub("      ","", rate_num)
+    rate_num <- gsub("\\,","", rate_num)
+    
+    #changes the format to numeric, and if it isn't numeric it makes it NA
+    format(as.numeric(rate_num), scientific = FALSE)
+}
+
+```
+
+```{r, eval = FALSE}
+#finds the reviews
+review25 <- function(imdb_urls){
+    urls <- read_html(imdb_urls[rank])
+    review_1 <- html_nodes(urls, ".listeritem-content") #this did not come out when I called it
+    review_1 <- html_text(review_1)
+}
+
+sapply(imdb_urls, review25) #I used this to test 
+```
+
+```{r, eval = FALSE}
+#finds the helpfulness
+helpfulness <- function(imdb_urls){
+  urls <- read_html(imdb_urls[rank])
+    helpful <- html_nodes(urls, "div") #i tried this but it had so much information and I had to force shut the computer, but I couldn't find anything else
+    helpful <- html_text(helpful)
+}
+
+sapply(imdb_urls, helpfulness) #I used this to test
+```
+
+```{r, eval = FALSE}
+for ( i in 1:1000){
+  rank = i #each loop will change the rank from 1-1000 (list of movies)
+  
+  rating <- sapply(imdb_urls, ratings) #rating
+  year <- sapply(imdb_urls, years) #year
+  title <- sapply(imdb_urls, titles) #title
+  ratenum <- sapply(imdb_urls, rate_nums) #rate number
+  budget <- sapply(imdb_urls, budgets) # budget of movie
+  genre <- sapply(imdb_urls, genres) #genre of movie
+  actor_list <- sapply(imdb_urls, actors) #actors in movie
+  gross <- sapply(imdb_urls, gross_rev) #gross revenue
+  
+  movie_data[i,] <- c(title, year, budget, gross, genre, rating, ratenum, actor_list) #puts them into data frame
+}
+
+```
+
+```{r}
+#makes my data into a csv
+write_csv(movie_data, "movie_data.csv")
+```
+
+
+_Victory conditions:_ You have a data frame with 1000 rows and columns that contain the first six variables, as well as each genre, review, and review helpfulness scores in appropriately formatted columns. Columns have short but clear names. Most rows have no missing values; the few rows where there are missing values have NA in the appropriate places. 
+
+_Mercy condition:_ If you are struggling to get these data in a reasonable form, a compiled, reasonably clean and accurate version for either the URL list or movie data will be added to Canvas called `imdb_urls.csv` and `moviedata.Rdata` respectively.  Use them to answer the following parts, if necessary. Your work in this part, even if not complete, can be scored for partial credit.
+
+2. (30 pts) Write code to plot the distributions of the first five variables listed above. Make sure missing values, if any, are handled gracefully. Your plots should be appropriately labeled, titled, colored, etc. Comment on the features each plot presents -- what information is gained by seeing these graphics?
+```{r}
+#given data frame 
+given_data <- read.csv("moviedata.csv")
+
+#my data frame
+my_data <- read.csv("movie_data.csv")
+
+#for these graphs i decided to use both the given data frame and my own data frame because I wanted to see how close mine were.
+```
+
+```{r}
+#creates plot for ratings data
+rating_plot <- ggplot(given_data, aes(x = as.numeric(rating))) + geom_histogram(bins = 50, color = "black", fill = "#DE684D", na.rm = TRUE) 
+
+#changing the labels and manipulates the x axis
+rating_plot <- rating_plot + scale_x_continuous(name = "Rating", breaks = scales::pretty_breaks(n = 13)) + scale_y_continuous(name = "Number of Movies") + ggtitle("Top 1000 Movie's Ratings")
+
+#using my data
+my_rating_plot <- ggplot(my_data, aes(x = as.numeric(X.rating.))) + geom_histogram(bins = 50, color = "black", fill = "#DE684D", na.rm = TRUE) + scale_x_continuous(name = "Rating", breaks = scales::pretty_breaks(n = 13)) + scale_y_continuous(name = "Number of Movies") + ggtitle("Top 1000 Movie's Ratings (my data)")
+
+
+rating_plot
+my_rating_plot
+
+#looking at this graph, we can see that the highest rating is 9.3/10.  Additionally, we see that most movies are rated within the 7.6 to 8.1 range with 7.7/10 being the most common rating. This graph is skewed to the right because not many movies have gotten the higher ratings.
+
+#my graph is fairly similar to the given_data graph
+```
+
+```{r}
+#create histogram with the number of ratings
+num_rate_plot <- ggplot(given_data, aes(x = as.numeric(num_ratings))) + geom_histogram(bins = 15, color = "black", fill = "#DE684D", na.rm = TRUE) 
+
+#changing the name of labels
+#scales::comma makes the labels long instead of scientific
+num_rate_plot <- num_rate_plot + scale_x_log10(name = "Number of Ratings",labels = scales::comma ) + scale_y_continuous(name = "Number of Movies") + ggtitle("Top 1000 Movie's Number of Ratings")
+
+#my data
+my_num_rate_plot <- ggplot(my_data, aes(x = as.numeric(X.rate.num.))) + geom_histogram(bins = 15, color = "black", fill = "#DE684D", na.rm = TRUE) + scale_x_log10(name = "Number of Ratings",labels = scales::comma ) + scale_y_continuous(name = "Number of Movies") + ggtitle("Top 1000 Movie's Number of Ratings (my data)")
+
+num_rate_plot
+my_num_rate_plot
+
+#looking at this graph, we can see that it is also skewed to the right.  Most movies between 30000-80000ish ratings, with very little movies with ratings in the millions.
+
+#my graph is very similar
+```
+
+```{r}
+#creates a plot for the years
+year_plot <- ggplot(given_data, aes(x = as.numeric(year))) + geom_bar(color = "black", fill = "#DE684D", na.rm = TRUE)
+
+#changes the names of labels
+year_plot <- year_plot + scale_x_continuous(name = "Year Released", breaks = scales::pretty_breaks(n = 10)) + scale_y_continuous(name = "Number of Movies") + ggtitle("Top 1000 Movie's Year Released")
+
+#my data
+my_year_plot <- ggplot(my_data, aes(x = as.numeric(X.year.))) + geom_bar(color = "black", fill = "#DE684D", na.rm = TRUE) + scale_x_continuous(name = "Year Released", breaks = scales::pretty_breaks(n = 10)) + scale_y_continuous(name = "Number of Movies") + ggtitle("Top 1000 Movie's Year Released (my data)")
+
+year_plot
+my_year_plot
+
+#we can see that the graph is skewed to the left with not many popular movies from the early to mid 1900s.  Most of the popular movies are from the late 1990 to the 2000s.
+
+#my plot is identical to the given data plot
+```
+
+```{r}
+#creates plot for the gross revenue
+gross_plot <- ggplot(given_data, aes(x = as.numeric(gross))) + geom_histogram(bins = 15, color = "black", fill = "#DE684D", na.rm = TRUE) 
+
+#changes the names of labels
+#scales::comma makes labels full instead of scientific
+gross_plot1 <- gross_plot + scale_x_continuous(name = "Gross Revenue",labels = scales::comma) + scale_y_continuous(name = "Number of Movies") + ggtitle("Top 1000 Movie's Gross Revenue")
+
+#usees log10 instead of continuous, this focuses on the data better
+gross_plot2 <- gross_plot + scale_x_log10(name = "Gross Revenue",labels = scales::comma) + scale_y_continuous(name = "Number of Movies") + ggtitle("Top 1000 Movie's Gross Revenue")
+
+#my data
+my_gross_plot <- ggplot(my_data, aes(x = as.numeric(X.gross.))) + geom_histogram(bins = 15, color = "black", fill = "#DE684D", na.rm = TRUE) 
+
+my_gross_plot1 <- my_gross_plot + scale_x_continuous(name = "Gross Revenue",labels = scales::comma) + scale_y_continuous(name = "Number of Movies") + ggtitle("Top 1000 Movie's Gross Revenue (my data)")
+
+my_gross_plot2 <- my_gross_plot + scale_x_log10(name = "Gross Revenue",labels = scales::comma) + scale_y_continuous(name = "Number of Movies") + ggtitle("Top 1000 Movie's Gross Revenue (my data)")
+
+
+gross_plot1
+my_gross_plot1
+
+gross_plot2
+my_gross_plot2
+
+#from this plot we are able to see that most of the movies gained a gross revenue lower than 250 million.  There are very few movies that gained revenues between 500 million - 1 billion.  In the second graph we can see examine closer form that first graph  The majority of movies are between 10 million-100 million.  This graph allows us to see that there are not many movies that have gross revenue below 100000.
+
+#my data was a little off but very similar shape
+```
+
+
+```{r}
+#creates plot for movie budget
+budget_plot <- ggplot(given_data, aes(x = as.numeric(budget))) + geom_histogram(bins = 50, color = "black", fill = "#DE684D", na.rm = TRUE) 
+
+budget_plot2 <- ggplot(given_data, aes(x = as.numeric(budget))) + geom_histogram(bins = 50, color = "black", fill = "#DE684D", na.rm = TRUE)
+
+#changes the labels and size of plot
+budget_plot <- budget_plot + scale_x_continuous(name = "Movie Budget", labels = scales::comma) + scale_y_continuous(name = "Number of Movies", limits = c(0,80)) + ggtitle("Top 1000 Movie's Movie Budget")
+
+#this uses long10 and focuses on the data better than without it
+budget_plot2 <- budget_plot2 + scale_x_log10(name = "Movie Budget", labels = scales::comma) + scale_y_continuous(name = "Number of Movies", limits = c(0,80)) + ggtitle("Top 1000 Movie's Movie Budget") 
+
+
+#my data
+my_budget_plot <- ggplot(my_data, aes(x = as.numeric(X.budget.))) + geom_histogram(bins = 50, color = "black", fill = "#DE684D", na.rm = TRUE) 
+
+my_budget_plot2 <- ggplot(my_data, aes(x = as.numeric(X.budget.))) + geom_histogram(bins = 50, color = "black", fill = "#DE684D", na.rm = TRUE)
+
+my_budget_plot <- my_budget_plot + scale_x_continuous(name = "Movie Budget", labels = scales::comma) + scale_y_continuous(name = "Number of Movies", limits = c(0,80)) + ggtitle("Top 1000 Movie's Movie Budget (my data)")
+
+my_budget_plot2 <- my_budget_plot2 + scale_x_log10(name = "Movie Budget", labels = scales::comma) + scale_y_continuous(name = "Number of Movies", limits = c(0,80)) + ggtitle("Top 1000 Movie's Movie Budget (my data)") 
+
+budget_plot
+my_budget_plot
+
+budget_plot2
+my_budget_plot2
+#this first graph is heavily skewed the right because of two outliers at 2.5 billion and 10 billion.  Because of those outliers, I decided to make a second graph that focuses into most of the data.  Here we can see that most of the budgets lie between 1 million - 100 million.
+
+#my data has similar shape to the given data, but it is off.
+
+```
+
+3. (20 pts) Complete a sentiment analyses on the 25 most helpful reviews for each movie. The choice of lexicon is up to you, but explain your reasons why your choice is the most reasonable/appropriate option. Add a summary of this information to your original data frame.
+```{r}
+#makes new data frame with the title, reviews, and the probability its helpful
+reviews <- given_data %>%
+  select(title, Review_1:Review_25, HelpProp_1:HelpProp_25)
+
+```
+
+```{r}
+#makes review into column of reviews (each review has their own row)
+rev <- pivot_longer(reviews, cols = Review_1:Review_25, names_to = "Review Num", values_to = "Review", names_repair = "unique")
+
+#makes helpprop into column of helpfulness (each helpfulness has their own row)
+help <- pivot_longer(reviews, cols = HelpProp_1:HelpProp_25, names_to = "Helpful Num", values_to = "Helpful", names_repair = "unique")
+
+```
+
+```{r}
+#merges the data frames together and selects only necessary pieces (matches the review and helpfulness together)
+helpful_review <- data.frame(rev, help) %>% 
+  select(title, Review, Helpful)
+
+```
+
+
+```{r}
+#creating sentiment using the bing lexicon 
+bing <- get_sentiments("bing")
+```
+
+```{r}
+#create a tibble with the helpful reviews
+helpful_tibble <- tibble(line = 1:length(helpful_review$Review), Review = helpful_review$Review, title = helpful_review$title)
+
+#modifying tibble to separate all the words within the reviews
+helpful_tibble2 <- helpful_tibble %>% 
+  unnest_tokens(word, Review)
+
+
+```
+
+```{r}
+#joins the tibble and lexicon by the word.  This checks to see matches between the words in bring and tibble
+sentiment_count <- left_join(helpful_tibble2, bing, by = "word")
+
+#shows tibble of how many positive and negatives there were within all of the comments
+sentiment_count %>%
+  count(by = sentiment)
+
+#counts the amount of positive words and negative words by the line/review they were in
+sentiment_count  <- sentiment_count %>%
+  group_by(line) %>%
+  count(by = sentiment)
+
+```
+
+
+```{r}
+#joining data together to get more elements and match up with given data
+sentiment_data <- left_join(sentiment_count, helpful_tibble, by = "line") 
+
+#selecting the needed data
+sentiment_data <- sentiment_data %>%
+  select(line, title, by, n)
+
+#changing the format of the data
+#sentiment becomes columns
+sent_data <- sentiment_data %>% 
+  pivot_wider(names_from = by, values_from = n)
+
+#adds all the positives and negatives of each movie
+sent_data <- sent_data %>%
+  group_by(title) %>%
+  summarise(sum(positive, na.rm = TRUE), sum(negative, na.rm = TRUE))
+
+#changes column names
+names(sent_data)[2] <- "positive"
+names(sent_data)[3] <- "negative"
+
+
+#i chose this bing because I thought it would be easier to tell the positive and negatives instead of trying to understand the various sentiments in loughran and nrc.  Additionally, I did not need the extra -5 to 5 scale that affin included.
+
+#looking at the tibble, we can see that the 25 top reviews contain more positive words than negative.  Therefore most of the reviews are positive reviews.
+```
+
+```{r}
+# adding the sentiment to the given_data by the title
+full_data <- left_join(given_data, sent_data, by = "title") 
+
+```
+
+
+
+4. (20 pts) Variable Relationships. Create one plot that displays the relationship (or lack thereof) between any of the movie variables. Your plot should be appropriately labeled, titled, colored, etc. Your plot should display at minimum 3 variables. A plot with more variables included will be scored more favorably (as long as the plot is reasonable and legible). Reviews and helpfulness/sentiment scores are considered aggregate variables (e.g., 25 helpfulness scores will be considered a single variable). Some questions that you might consider when creating your plot are below, though you are not limited to these questions. 
+   - Is there any evidence of a relationship between review helpfulness and review sentiment? 
+   - Do the review scores (from the most helpful reviews) generally agree with the overall IMDB average rating?
+   - Is there evidence of a relationship between average IMDB rating and a movie's gross? Does release year seem to have an effect on this relationship?
+   - Is there evidence of a relationship between a movie's budget and a movie's gross? Does release year seem to have an effect on this relationship? 
+   - Do any actors have an effect (positive or negative) on the relationship between budget, gross, or average IMDB rating? Is this pattern common across any genres?
+```{r}
+#ggplot of relationship between positive and negative sentiments
+relationship <- ggplot(full_data, aes(positive, negative, color = year)) + geom_point(position = "jitter")
+
+#line showing where negative and positive sentiments are equal
+relationship <- relationship + geom_abline() 
+
+#changes color of year gradient
+relationship <- relationship + scale_color_gradientn(colours = rainbow(5))
+
+#changing titles and axis labels
+relationship <- relationship + labs(title ="Review Sentiments and Movie Year", x = "Amount of Positive Sentiments", y = "Amount of Negative Sentiments")
+
+relationship
+
+#Looking at the review sentiments and movie year graph,  we can see that line that goes through the data.  This line is where positive and negative sentiment counts are the same.  Based on this, we can gauge that in general, there are more positive sentiments than negative sentiments within the most helpful reviews.  Additionally, we are able to tell that as the count of positive sentiments grows, so does the negative sentiments.  This indicates that there is a positive relationship between the negative and positive sentiments.  Through this graph we are also able to see that newer movies tend to have sentiment counts, which makes sense because newer movies tend to have fewer reviews.  What is really interesting about this graph, it that most movies have positive sentiment counts between about 250-600, and they have negative sentiment counts between about 100-500.  We do not see much data outside of those ranges.
+```
+
+  
+  
+  
+  
+  
+  
+
+
